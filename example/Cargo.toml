@@ -1,0 +1,13 @@
+[package]
+name = "drv-example"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+proc_macro = true
+
+[dependencies]
+drv = { path = ".." }
+proc-macro2 = "1.0.27"
+syn = "1.0.72"
+quote = "1.0"
