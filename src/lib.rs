@@ -165,6 +165,15 @@ impl Enum {
     pub fn variant_names(&self) -> impl Iterator<Item = &syn::Ident> {
         self.variants.iter().map(|f| &f.name)
     }
+
+    /// Get an iterator over the types of all fields of all variants.
+    ///
+    /// The iterator does not perform any de-duplication of identical types.
+    pub fn all_field_types(&self) -> impl Iterator<Item = &syn::Type> {
+        self.variants
+            .iter()
+            .flat_map(|variant| variant.fields.iter().map(|field| &field.ty))
+    }
 }
 
 impl Union {
