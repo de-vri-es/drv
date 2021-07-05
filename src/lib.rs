@@ -290,6 +290,16 @@ impl StructKind {
     }
 }
 
+impl Variant {
+    pub fn field_names(&self) -> impl Iterator<Item = &syn::Member> {
+        self.fields.iter().map(|f| &f.name)
+    }
+
+    pub fn field_types(&self) -> impl Iterator<Item = &syn::Type> {
+        self.fields.iter().map(|f| &f.ty)
+    }
+}
+
 impl VariantKind {
     pub fn expect_unit(&self) -> Result<()> {
         match self {
