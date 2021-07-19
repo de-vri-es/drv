@@ -6,10 +6,11 @@ use quote::{quote, ToTokens};
 
 #[macro_export]
 macro_rules! make_derive_macro {
-    ($name:ident, $fn:path $(,)?) => {
-        $crate::make_derive_macro! { $name(), $fn }
+    ($(#[doc=$doc:literal])* $name:ident, $fn:path $(,)?) => {
+        $crate::make_derive_macro! { $(#[doc=$doc])* $name(), $fn }
     };
-    ($name:ident($($attr:ident),*$(,)?), $fn:path $(,)?) => {
+    ($(#[doc=$doc:literal])* $name:ident($($attr:ident),*$(,)?), $fn:path $(,)?) => {
+        $(#[doc=$doc])*
         #[proc_macro_derive($name, attributes($($attr),*))]
         #[allow(non_snake_case)]
         pub fn $name(input: proc_macro::TokenStream)
