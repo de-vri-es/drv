@@ -1,0 +1,5 @@
+# Unreleased
+- [change][major] Update `syn` to version `2.x.x`.
+
+# Version 0.1.0 - 2021-07-19
+- [add][minor] Initial release.
