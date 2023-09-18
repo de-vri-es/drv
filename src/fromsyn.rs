@@ -97,34 +97,25 @@ impl Field {
     pub(crate) fn from_syn(f: syn::Fields) -> Vec<Self> {
         f.into_iter()
             .enumerate()
-            .map(
-                |(
-                    i,
-                    syn::Field {
-                        attrs,
-                        vis,
-                        ident,
-                        colon_token: _,
-                        ty,
-                    },
-                )| {
-                    Self {
-                        attrs: Attributes::from_syn(attrs),
-                        vis,
-                        name: ident.map_or_else(
-                            || {
-                                syn::Member::Unnamed(syn::Index {
-                                    index: i as u32,
-                                    span: proc_macro2::Span::call_site(),
-                                })
-                            },
-                            syn::Member::Named,
-                        ),
-                        ty,
-                    }
-                },
-            )
+            .map(|(i, field)| Self::from_field(i as u32, field))
             .collect()
+    }
+
+    fn from_field(index: u32, field: syn::Field) -> Self {
+        Self {
+            attrs: Attributes::from_syn(field.attrs),
+            vis: field.vis,
+            mutability: field.mutability,
+            name: match field.ident {
+                Some(ident) => syn::Member::Named(ident),
+                None => syn::Member::Unnamed(syn::Index {
+                    index,
+                    span: proc_macro2::Span::call_site(),
+                }),
+            },
+            colon_token: field.colon_token,
+            ty: field.ty,
+        }
     }
 }
 

@@ -90,7 +90,9 @@ pub enum VariantKind {
 pub struct Field {
     pub attrs: Attributes,
     pub vis: syn::Visibility,
+    pub mutability: syn::FieldMutability,
     pub name: syn::Member,
+    pub colon_token: Option<syn::token::Colon>,
     pub ty: syn::Type,
 }
 
@@ -194,7 +196,7 @@ impl Attributes {
     pub fn check_no(&self, attr: &str) -> Result<()> {
         let mut error = None::<syn::Error>;
         for a in &self.attrs {
-            if let Some(ident) = a.attr.path.get_ident() {
+            if let Some(ident) = a.attr.path().get_ident() {
                 if ident == attr {
                     let e =
                         syn::Error::new(ident.span(), format!("#[{}] not supported here", attr));
@@ -235,7 +237,7 @@ impl Attributes {
         attr: &'static str,
     ) -> impl Iterator<Item = (proc_macro2::Span, &syn::Attribute)> {
         self.attrs.iter().filter_map(move |a| {
-            if let Some(ident) = a.attr.path.get_ident() {
+            if let Some(ident) = a.attr.path().get_ident() {
                 if ident == attr {
                     return Some((ident.span(), &a.attr));
                 }
@@ -252,11 +254,11 @@ impl StructKind {
         match self {
             Self::Unit(_) => Ok(()),
             Self::Tuple(p) => Err(syn::Error::new(
-                p.span,
+                p.span.join(),
                 "expected unit struct, but got `(..)` instead of `;`",
             )),
             Self::Struct(b) => Err(syn::Error::new(
-                b.span,
+                b.span.join(),
                 "expected unit struct, but got `{..}` instead of `;`",
             )),
         }
@@ -270,7 +272,7 @@ impl StructKind {
             )),
             Self::Tuple(_) => Ok(()),
             Self::Struct(b) => Err(syn::Error::new(
-                b.span,
+                b.span.join(),
                 "expected tuple struct, but got `{..}` instead of `(..)`",
             )),
         }
@@ -283,7 +285,7 @@ impl StructKind {
                 "expected regular struct, but got `;` instead of `{..}`",
             )),
             Self::Tuple(p) => Err(syn::Error::new(
-                p.span,
+                p.span.join(),
                 "expected regular struct, but got `(..)` instead of `{..}`",
             )),
             Self::Struct(_) => Ok(()),
@@ -306,11 +308,11 @@ impl VariantKind {
         match self {
             Self::Unit(_) => Ok(()),
             Self::Tuple(p) => Err(syn::Error::new(
-                p.span,
+                p.span.join(),
                 "expected unit variant, but got `(..)` instead of `,`",
             )),
             Self::Struct(b) => Err(syn::Error::new(
-                b.span,
+                b.span.join(),
                 "expected unit variant, but got `{..}` instead of `,`",
             )),
         }
@@ -324,7 +326,7 @@ impl VariantKind {
             )),
             Self::Tuple(_) => Ok(()),
             Self::Struct(b) => Err(syn::Error::new(
-                b.span,
+                b.span.join(),
                 "expected tuple varaiant, but got `{..}` instead of `(..)`",
             )),
         }
@@ -337,7 +339,7 @@ impl VariantKind {
                 "expected struct variant, but missing `{..}`",
             )),
             Self::Tuple(p) => Err(syn::Error::new(
-                p.span,
+                p.span.join(),
                 "expected struct variant, but got `(..)` instead of `{..}`",
             )),
             Self::Struct(_) => Ok(()),
@@ -387,9 +389,10 @@ pub fn combine_generics(one: syn::Generics, another: syn::Generics) -> syn::Gene
 }
 
 pub fn where_clause(w: syn::WhereClause) -> syn::Generics {
-    let mut g = syn::Generics::default();
-    g.where_clause = Some(w);
-    g
+    syn::Generics {
+        where_clause: Some(w),
+        ..Default::default()
+    }
 }
 
 pub trait Type {
