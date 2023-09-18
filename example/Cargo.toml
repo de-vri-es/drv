@@ -8,6 +8,6 @@ proc_macro = true
 
 [dependencies]
 drv = { path = ".." }
-proc-macro2 = "1.0.27"
-syn = "1.0.72"
+proc-macro2 = "1.0.67"
+syn = "2.0.37"
 quote = "1.0"
